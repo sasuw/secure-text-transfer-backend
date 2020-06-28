@@ -24,7 +24,7 @@ func main() {
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
 	r.HandleFunc("/string", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", "https://stt.sasu.net")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 		var src cryptoSource
@@ -83,6 +83,9 @@ func main() {
 	http.ListenAndServe(":10000", r)
 }
 
+/*
+NotFoundHandler returns nothing
+*/
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 	fmt.Fprintf(w, "404 - Not Found")
