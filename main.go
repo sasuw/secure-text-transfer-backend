@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -22,26 +23,47 @@ func main() {
 	r := mux.NewRouter()
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
-	r.HandleFunc("/string/{string}", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/string", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
 		var src cryptoSource
 		rnd := rand.New(src)
 
-		vars := mux.Vars(r)
-		string := vars["string"]
-		fmt.Println("Received request POST /string/" + string)
+		//vars := mux.Vars(r)
+		//string := vars["string"]
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		string := string(body)
+		fmt.Println("Received request POST /string with body " + string)
+		if string == "" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 
+		//TODO: check that pin does not exist already
 		pin := uint64(rnd.Intn(99999))
 		m[pin] = string
 
 		sPin := strconv.FormatUint(pin, 10)
 		fmt.Println("Returning created PIN " + sPin)
 		io.WriteString(w, sPin)
-	}).Methods("POST")
+	}).Methods("POST", "OPTIONS")
 
-	r.HandleFunc("/pin/{pin}", func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		pinStr := vars["pin"]
-		fmt.Println("Received request GET /pin/" + pinStr)
+	r.HandleFunc("/pin", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		//vars := mux.Vars(r)
+		//pinStr := vars["pin"]
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pinStr := string(body)
+		fmt.Println("Received request POST /pin with body " + pinStr)
 
 		pin, err := strconv.ParseUint(pinStr, 10, 64)
 		if err != nil {
@@ -53,9 +75,10 @@ func main() {
 			return
 		}
 
+		delete(m, pin)
 		fmt.Println("Returning retrieved string " + pwd)
 		io.WriteString(w, pwd)
-	}).Methods("GET")
+	}).Methods("POST", "OPTIONS")
 
 	http.ListenAndServe(":10000", r)
 }
