@@ -53,7 +53,7 @@ func main() {
 	}).Methods("POST", "OPTIONS")
 
 	r.HandleFunc("/pin", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		//w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 		//vars := mux.Vars(r)
