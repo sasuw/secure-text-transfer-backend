@@ -24,7 +24,7 @@ func main() {
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
 	r.HandleFunc("/string", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "https://stt.sasu.net")
+		//w.Header().Set("Access-Control-Allow-Origin", "https://stt.sasu.net")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 		var src cryptoSource
