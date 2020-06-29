@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -47,6 +48,13 @@ func main() {
 		pin := uint64(rnd.Intn(99999))
 		m[pin] = string
 
+		time.AfterFunc(time.Minute*5, func() {
+			if m[pin] != "" {
+				log.Println("Auto-deleted text for PIN " + strconv.FormatUint(pin, 10))
+				delete(m, pin)
+			}
+		})
+
 		sPin := strconv.FormatUint(pin, 10)
 		fmt.Println("Returning created PIN " + sPin)
 		io.WriteString(w, sPin)
@@ -80,7 +88,7 @@ func main() {
 		io.WriteString(w, pwd)
 	}).Methods("POST", "OPTIONS")
 
-	http.ListenAndServe(":10000", r)
+	http.ListenAndServe(":9999", r)
 }
 
 /*
