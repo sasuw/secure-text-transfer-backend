@@ -1,0 +1,62 @@
+{
+	"info": {
+		"_postman_id": "c38b15d9-8ba7-4283-8037-21f7e222f0ff",
+		"name": "SecureStringTransfer",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "POST string",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "test",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "http://{{host}}:{{port}}/string",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"string"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST pin",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "22591",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "http://{{host}}:{{port}}/pin",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"pin"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
