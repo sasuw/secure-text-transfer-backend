@@ -38,7 +38,8 @@ func main() {
 			log.Fatal(err)
 		}
 		string := string(body)
-		fmt.Println("Received request POST /string with body " + string)
+		//TODO: make environment-specific logging for debugging purposes
+		//fmt.Println("Received request POST /string with body " + string)
 		if string == "" {
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -71,7 +72,8 @@ func main() {
 			log.Fatal(err)
 		}
 		pinStr := string(body)
-		fmt.Println("Received request POST /pin with body " + pinStr)
+		//TODO: make environment-specific logging for debugging purposes
+		//fmt.Println("Received request POST /pin with body " + pinStr)
 
 		pin, err := strconv.ParseUint(pinStr, 10, 64)
 		if err != nil {
