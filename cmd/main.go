@@ -25,14 +25,8 @@ func main() {
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
 	r.HandleFunc("/string", func(w http.ResponseWriter, r *http.Request) {
-		//w.Header().Set("Access-Control-Allow-Origin", "https://stt.sasu.net")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-		var src cryptoSource
-		rnd := rand.New(src)
-
-		//vars := mux.Vars(r)
-		//string := vars["string"]
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Fatal(err)
@@ -45,8 +39,14 @@ func main() {
 			return
 		}
 
-		//TODO: check that pin does not exist already
-		pin := uint64(rnd.Intn(99999))
+		pin := GetPin()
+		if pin == 0 {
+			//no pin could be generated
+			fmt.Println("Error: PIN could not be generated")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+
 		m[pin] = string
 
 		time.AfterFunc(time.Minute*5, func() {
@@ -62,11 +62,8 @@ func main() {
 	}).Methods("POST", "OPTIONS")
 
 	r.HandleFunc("/pin", func(w http.ResponseWriter, r *http.Request) {
-		//w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-		//vars := mux.Vars(r)
-		//pinStr := vars["pin"]
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Fatal(err)
@@ -115,4 +112,29 @@ func (s cryptoSource) Uint64() (v uint64) {
 		log.Fatal(err)
 	}
 	return v
+}
+
+/*
+GetPin returns a PIN of type uint64 with a value between 1 and 99999
+*/
+func GetPin() uint64 {
+	var src cryptoSource
+	rnd := rand.New(src)
+
+	pin := uint64(rnd.Intn(99999))
+	var i int = 0
+	var numberOfTimesToTry = 100 //100 subsequent collisions should be very unlikely
+	valuePresent := false
+	keepTrying := true
+	for ok := true; ok; ok = keepTrying {
+		_, valuePresent = m[pin]
+		keepTrying = valuePresent && i < numberOfTimesToTry
+		i++
+	}
+
+	if !valuePresent {
+		return pin
+	}
+
+	return 0
 }
