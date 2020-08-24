@@ -116,6 +116,7 @@ func (s cryptoSource) Uint64() (v uint64) {
 
 /*
 GetPin returns a PIN of type uint64 with a value between 1 and 99999
+or 0 if no PIN could be generated due to collisions
 */
 func GetPin() uint64 {
 	var src cryptoSource
