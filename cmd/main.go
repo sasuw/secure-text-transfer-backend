@@ -9,6 +9,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -25,7 +26,13 @@ func main() {
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
 
 	r.HandleFunc("/string", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		initResult := InitRequest(w, r)
+		if !initResult {
+			return
+		}
+
+		dt := time.Now()
+		fmt.Println("Received request to store text at ", dt.String())
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -35,7 +42,14 @@ func main() {
 		//TODO: make environment-specific logging for debugging purposes
 		//fmt.Println("Received request POST /string with body " + string)
 		if string == "" {
-			w.WriteHeader(http.StatusNoContent)
+			w.WriteHeader(http.StatusNoContent) //http 204
+			return
+		}
+
+		maxTextLength := 4000
+		if len(string) > maxTextLength {
+			//4000 characters should be enough for everybody
+			http.Error(w, "Text too long ("+strconv.Itoa(maxTextLength)+" characters max)", http.StatusBadRequest)
 			return
 		}
 
@@ -43,7 +57,7 @@ func main() {
 		if pin == 0 {
 			//no pin could be generated
 			fmt.Println("Error: PIN could not be generated")
-			w.WriteHeader(http.StatusServiceUnavailable)
+			w.WriteHeader(http.StatusServiceUnavailable) //http 503
 			return
 		}
 
@@ -57,12 +71,18 @@ func main() {
 		})
 
 		sPin := strconv.FormatUint(pin, 10)
-		fmt.Println("Returning created PIN " + sPin)
+		//fmt.Println("Returning created PIN " + sPin)
 		io.WriteString(w, sPin)
 	}).Methods("POST", "OPTIONS")
 
 	r.HandleFunc("/pin", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		initResult := InitRequest(w, r)
+		if !initResult {
+			return
+		}
+
+		dt := time.Now()
+		fmt.Println("Received request to retrieve text with PIN at ", dt.String())
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -83,7 +103,8 @@ func main() {
 		}
 
 		delete(m, pin)
-		fmt.Println("Returning retrieved string " + pwd)
+		//TODO: make environment-specific logging for debugging purposes
+		//fmt.Println("Returning retrieved string " + pwd)
 		io.WriteString(w, pwd)
 	}).Methods("POST", "OPTIONS")
 
@@ -138,4 +159,29 @@ func GetPin() uint64 {
 	}
 
 	return 0
+}
+
+func InitRequest(w http.ResponseWriter, r *http.Request) bool {
+	sttenv, exists := os.LookupEnv("STT_ENV")
+
+	if exists && sttenv == "dev" {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return false
+		}
+	}
+
+	xReqW := r.Header.Get("X-Requested-With")
+
+	if xReqW != "XMLHttpRequest" {
+		http.Error(w, "Bad header", http.StatusBadRequest)
+		return false
+	}
+
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	return true
 }
