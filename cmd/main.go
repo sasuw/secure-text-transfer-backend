@@ -108,7 +108,12 @@ func main() {
 		io.WriteString(w, pwd)
 	}).Methods("POST", "OPTIONS")
 
-	http.ListenAndServe(":9999", r)
+	sttport, sttportExists := os.LookupEnv("STT_PORT")
+	if !sttportExists {
+		http.ListenAndServe(":9999", r)
+	} else {
+		http.ListenAndServe(":"+sttport, r)
+	}
 }
 
 /*
@@ -161,6 +166,11 @@ func GetPin() uint64 {
 	return 0
 }
 
+/*
+InitRequest returns true if the initialization succeeded, otherwise
+false. Should be used to in the beginning of outside-facing
+request methods.
+*/
 func InitRequest(w http.ResponseWriter, r *http.Request) bool {
 	sttenv, exists := os.LookupEnv("STT_ENV")
 
