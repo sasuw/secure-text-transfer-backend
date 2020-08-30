@@ -1,1 +1,3 @@
 cmd/main
+cmd/__debug_bin
+cmd/cmd
