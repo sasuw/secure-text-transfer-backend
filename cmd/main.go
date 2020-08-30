@@ -16,11 +16,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var m map[uint64]string
+var m map[string]string
 
 func main() {
 
-	m = make(map[uint64]string)
+	m = make(map[string]string)
 
 	r := mux.NewRouter()
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
@@ -31,13 +31,17 @@ func main() {
 			return
 		}
 
-		dt := time.Now()
-		fmt.Println("Received request to store text at ", dt.String())
-
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Fatal(err)
+			w.WriteHeader(http.StatusInternalServerError) //http 500
+			return
 		}
+
+		dt := time.Now()
+		blen := strconv.Itoa(len(body))
+		fmt.Println("Received request to store text of length "+blen+" at ", dt.String())
+
 		string := string(body)
 		//TODO: make environment-specific logging for debugging purposes
 		//fmt.Println("Received request POST /string with body " + string)
@@ -53,26 +57,25 @@ func main() {
 			return
 		}
 
-		pin := GetPin()
-		if pin == 0 {
+		pinStr := GetPin()
+		if pinStr == "0" {
 			//no pin could be generated
 			fmt.Println("Error: PIN could not be generated")
 			w.WriteHeader(http.StatusServiceUnavailable) //http 503
 			return
 		}
 
-		m[pin] = string
+		m[pinStr] = string
 
 		time.AfterFunc(time.Minute*5, func() {
-			if m[pin] != "" {
-				log.Println("Auto-deleted text for PIN " + strconv.FormatUint(pin, 10))
-				delete(m, pin)
+			if m[pinStr] != "" {
+				log.Println("Auto-deleted text for PIN")
+				delete(m, pinStr)
 			}
 		})
 
-		sPin := strconv.FormatUint(pin, 10)
 		//fmt.Println("Returning created PIN " + sPin)
-		io.WriteString(w, sPin)
+		io.WriteString(w, pinStr)
 	}).Methods("POST", "OPTIONS")
 
 	r.HandleFunc("/pin", func(w http.ResponseWriter, r *http.Request) {
@@ -81,28 +84,27 @@ func main() {
 			return
 		}
 
-		dt := time.Now()
-		fmt.Println("Received request to retrieve text with PIN at ", dt.String())
-
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Fatal(err)
+			w.WriteHeader(http.StatusInternalServerError) //http 500
+			return
 		}
+
+		dt := time.Now()
+		blen := strconv.Itoa(len(body))
+		fmt.Println("Received request to retrieve text with PIN of length "+blen+" at ", dt.String())
 		pinStr := string(body)
 		//TODO: make environment-specific logging for debugging purposes
 		//fmt.Println("Received request POST /pin with body " + pinStr)
 
-		pin, err := strconv.ParseUint(pinStr, 10, 64)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pwd := m[pin]
+		pwd := m[pinStr]
 		if pwd == "" {
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 
-		delete(m, pin)
+		delete(m, pinStr)
 		//TODO: make environment-specific logging for debugging purposes
 		//fmt.Println("Returning retrieved string " + pwd)
 		io.WriteString(w, pwd)
@@ -144,26 +146,27 @@ func (s cryptoSource) Uint64() (v uint64) {
 GetPin returns a PIN of type uint64 with a value between 1 and 99999
 or 0 if no PIN could be generated due to collisions
 */
-func GetPin() uint64 {
+func GetPin() string {
 	var src cryptoSource
 	rnd := rand.New(src)
 
 	pin := uint64(rnd.Intn(99999))
+	pinStr := strconv.FormatUint(pin, 10)
 	var i int = 0
 	var numberOfTimesToTry = 100 //100 subsequent collisions should be very unlikely
 	valuePresent := false
 	keepTrying := true
 	for ok := true; ok; ok = keepTrying {
-		_, valuePresent = m[pin]
+		_, valuePresent = m[pinStr]
 		keepTrying = valuePresent && i < numberOfTimesToTry
 		i++
 	}
 
 	if !valuePresent {
-		return pin
+		return pinStr
 	}
 
-	return 0
+	return "0"
 }
 
 /*
