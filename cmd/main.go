@@ -68,9 +68,10 @@ func main() {
 			return
 		}
 
-		fmt.Fprintf(w, "Payload: %+v", p)
 		mp[p.Id] = p
 
+		w.WriteHeader(http.StatusNoContent) //http 204
+		return
 	}).Methods("POST", "OPTIONS")
 
 	r.HandleFunc("/encryptedText", func(w http.ResponseWriter, r *http.Request) {
