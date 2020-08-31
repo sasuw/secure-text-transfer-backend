@@ -102,3 +102,4 @@ Project Link: [https://github.com/sasuw/secure-text-transfer-backend](https://gi
 ## Acknowledgements
 * [Mux](https://github.com/gorilla/mux)
 * [decodeJSONBody](https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body)
+* [limit.go](https://www.alexedwards.net/blog/how-to-rate-limit-http-requests)

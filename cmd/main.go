@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"golang.org/x/time/rate"
 )
 
 /*
@@ -30,6 +31,7 @@ type Payload struct {
 
 var m map[string]string
 var mp map[string]Payload
+var limiter = rate.NewLimiter(1, 3)
 
 func main() {
 
@@ -38,6 +40,19 @@ func main() {
 
 	r := mux.NewRouter()
 	r.NotFoundHandler = http.HandlerFunc(NotFoundHandler)
+
+	r.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
+		initResult := InitRequest(w, r)
+		if !initResult {
+			return
+		}
+
+		dt := time.Now()
+		userIP := ReadUserIP(r)
+		fmt.Println("Received request to get status from IP "+userIP+" at ", dt.String())
+
+		w.WriteHeader(http.StatusNoContent)
+	}).Methods("GET", "OPTIONS")
 
 	r.HandleFunc("/encryptedText", func(w http.ResponseWriter, r *http.Request) {
 		initResult := InitRequest(w, r)
@@ -69,6 +84,13 @@ func main() {
 		}
 
 		mp[p.Id] = p
+
+		time.AfterFunc(time.Minute*5, func() {
+			if mp[p.Id] != (Payload{}) {
+				log.Println("Auto-deleted Payload")
+				delete(mp, p.Id)
+			}
+		})
 
 		w.WriteHeader(http.StatusNoContent) //http 204
 		return
@@ -204,9 +226,9 @@ func main() {
 
 	sttport, sttportExists := os.LookupEnv("STT_PORT")
 	if !sttportExists {
-		http.ListenAndServe(":9999", r)
+		http.ListenAndServe(":9999", limit(r))
 	} else {
-		http.ListenAndServe(":"+sttport, r)
+		http.ListenAndServe(":"+sttport, limit(r))
 	}
 }
 
@@ -289,4 +311,15 @@ func InitRequest(w http.ResponseWriter, r *http.Request) bool {
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 	return true
+}
+
+func ReadUserIP(r *http.Request) string {
+	IPAddress := r.Header.Get("X-Real-Ip")
+	if IPAddress == "" {
+		IPAddress = r.Header.Get("X-Forwarded-For")
+	}
+	if IPAddress == "" {
+		IPAddress = r.RemoteAddr
+	}
+	return IPAddress
 }
