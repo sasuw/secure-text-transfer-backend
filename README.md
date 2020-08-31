@@ -6,8 +6,9 @@ Secure Text Transfer (STT) is a website project enabling people to transfer a pi
   * no registration or login needed
   * minimal amount of cognitive load
   * minimal amount of typing and clicks without sacrifing security
+  * responsive design, wide device support
 
-[![STT Screenshot](https://github.com/sasuw/securestringtransfer-backend/blob/master/images/stt-fronpage-screenshot-2020-08-30.png?raw=true)](https://stt.sasu.net)
+[![STT Screenshot](https://github.com/sasuw/secure-text-transfer-backend/blob/master/images/stt-fronpage-screenshot-2020-08-30.png?raw=true)](https://stt.sasu.net)
 
 ### History
 
@@ -21,7 +22,7 @@ In the future the text to be transferred is encrypted on the client side, furthe
 
 ### Project structure
 
-The project has a frontend consisting of a one-page static website, see [securestring-frontend](https://github.com/sasuw/securestringtransfer-frontend). The frontend interacts with the backend through REST endpoints using AJAX.
+The project has a frontend consisting of a one-page static website, see [secure-text-frontend](https://github.com/sasuw/secure-text-transfer-frontend). The frontend interacts with the backend through REST endpoints using AJAX.
 
 This project is the backend part, which is a web server with REST endpoints created with Golang.
 
@@ -61,7 +62,7 @@ Because browsers don't allow cross-site AJAX requests willy-nilly, you may have 
 <!-- ROADMAP -->
 ## Roadmap
 
-See the [open issues](https://github.com/sasuw/securestringtransfer-backend/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/sasuw/secure-text-transfer-backend/issues) for a list of proposed features (and known issues).
 
 <!-- CONTRIBUTING -->
 ## Contributing
@@ -93,7 +94,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ## Contact
 
 Sasu Welling - [@sasuw](https://twitter.com/sasuw) -  
-Project Link: [https://github.com/sasuw/securestringtransfer-backend](https://github.com/sasuw/securestringtransfer-backend)
+Project Link: [https://github.com/sasuw/secure-text-transfer-backend](https://github.com/sasuw/secure-text-transfer-backend)
 
 
 
