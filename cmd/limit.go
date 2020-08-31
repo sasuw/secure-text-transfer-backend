@@ -21,7 +21,6 @@ package main
 
 import (
 	"log"
-	"net"
 	"net/http"
 	"sync"
 	"time"
@@ -37,6 +36,7 @@ type visitor struct {
 }
 
 // Change the the map to hold values of the type visitor.
+var brfip = make(map[string]int) //blocked requests for ip
 var visitors = make(map[string]*visitor)
 var mu sync.Mutex
 
@@ -78,22 +78,32 @@ func cleanupVisitors() {
 	}
 }
 
+func readUserIP(r *http.Request) string {
+	IPAddress := r.Header.Get("X-Real-Ip")
+	if IPAddress == "" {
+		IPAddress = r.Header.Get("X-Forwarded-For")
+	}
+	if IPAddress == "" {
+		IPAddress = r.RemoteAddr
+	}
+	return IPAddress
+}
+
 func limit(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			log.Println(err.Error())
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
+		ip := readUserIP(r)
 
 		limiter := getVisitor(ip)
 		if limiter.Allow() == false {
 			log.Println("Request from ip " + ip + " blocked by rate limiter")
 			http.Error(w, http.StatusText(429), http.StatusTooManyRequests)
-			time.Sleep(2 * time.Second)
+
+			brfip[ip] = brfip[ip] + 1
+			waitTime := 3 * brfip[ip]
+			time.Sleep(time.Duration(waitTime) * time.Second) //make the wait time dependent on the amount of rate exceedings
 			return
 		}
+		delete(brfip, ip) //when no rate limiting occurred, reset wait time for rate-limited requests for ip
 
 		next.ServeHTTP(w, r)
 	})

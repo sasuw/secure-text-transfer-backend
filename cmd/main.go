@@ -48,8 +48,7 @@ func main() {
 		}
 
 		dt := time.Now()
-		userIP := ReadUserIP(r)
-		fmt.Println("Received request to get status from IP "+userIP+" at ", dt.String())
+		fmt.Println("Received request to get status at ", dt.String())
 
 		w.WriteHeader(http.StatusNoContent)
 	}).Methods("GET", "OPTIONS")
@@ -311,15 +310,4 @@ func InitRequest(w http.ResponseWriter, r *http.Request) bool {
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 	return true
-}
-
-func ReadUserIP(r *http.Request) string {
-	IPAddress := r.Header.Get("X-Real-Ip")
-	if IPAddress == "" {
-		IPAddress = r.Header.Get("X-Forwarded-For")
-	}
-	if IPAddress == "" {
-		IPAddress = r.RemoteAddr
-	}
-	return IPAddress
 }
