@@ -166,7 +166,7 @@ func main() {
 		maxTextLength := 4000
 		if len(string) > maxTextLength {
 			//4000 characters should be enough for everybody
-			http.Error(w, "Text too long ("+strconv.Itoa(maxTextLength)+" characters max)", http.StatusBadRequest) //400
+			http.Error(w, "Text too long ("+strconv.Itoa(maxTextLength)+" characters max)", 413) //413 Payload too large
 			return
 		}
 
