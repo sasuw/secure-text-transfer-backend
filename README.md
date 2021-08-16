@@ -39,16 +39,16 @@ To run the backend locally, you should have a working go environment and a text 
 
 ### Build and run
 
-<u>Prepare</u>
+**Prepare**
 
     go mod init sttme.net/backend
     go mod tidy
 
-<u>Build</u>
+**Build**
 
     go build main.go limit.go jsonHandler.go
 
-<u>Run</u>
+**Run**
 
     ./main
 
@@ -60,7 +60,7 @@ Because browsers don't allow cross-site AJAX requests willy-nilly, you may have 
 
     export STT_ENV=dev && ./main
 
-<u>Test</u>
+**Test**
 
 When testing the API, you must provide a
 
@@ -76,7 +76,7 @@ with every request.
 
 ### Methods
 
-<u>POST /string</u>
+**POST /string**
 
 Submits string to be stored on the server until it is retrieved. If string is not retrieved within five minutes, it is deleted from the server.
 
@@ -87,7 +87,7 @@ Return codes and values:
   * 413 Payload too large: when string length is over 4000 characters
   * 503 Service unavailable: when PIN could not be generated for some reason
 
-<u>POST /pin</u>
+**POST /pin**
 
 Submits PIN to retrieve previously stored string from server.
 
