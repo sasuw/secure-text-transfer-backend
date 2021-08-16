@@ -39,15 +39,20 @@ To run the backend locally, you should have a working go environment and a text 
 
 ### Build and run
 
-Build
+<u>Prepare</u>
 
-    go build main.go jsonHandler.go
+    go mod init sttme.net/backend
+    go mod tidy
 
-Run
+<u>Build</u>
+
+    go build main.go limit.go jsonHandler.go
+
+<u>Run</u>
 
     ./main
 
-Running the main program without arguments starts the server on port 9999. If you want to run it using a differnet port, supply the environment variable STT_PORT, e.g. like this
+Running the main program without arguments starts the server on port 9999. If you want to run it using a different port, supply the environment variable STT_PORT, e.g. like this
 
     export STT_PORT=9998 && ./main
 
@@ -55,9 +60,47 @@ Because browsers don't allow cross-site AJAX requests willy-nilly, you may have 
 
     export STT_ENV=dev && ./main
 
+<u>Test</u>
+
+When testing the API, you must provide a
+
+    X-Requested-With
+
+header with value
+
+    XMLHttpRequest
+
+with every request.
+
 ## API Documentation
 
-(TODO)
+### Methods
+
+<u>POST /string</u>
+
+Submits string to be stored on the server until it is retrieved. If string is not retrieved within five minutes, it is deleted from the server.
+
+Return codes and values:
+
+  * 200 OK: when request is processed successfully. Returns the PIN with the value of 1 to 99999 as a string.
+  * 204 No content: when posted string is empty
+  * 413 Payload too large: when string length is over 4000 characters
+  * 503 Service unavailable: when PIN could not be generated for some reason
+
+<u>POST /pin</u>
+
+Submits PIN to retrieve previously stored string from server.
+
+Return codes and values:
+
+  * 200 OK: when request is processed successfully and stored string is found with PIN. Returns the stored string and deletes it from the server.
+  * 204 No content: no string is found with PIN
+  * 503 Service unavailable: internal error
+
+### General errors
+
+429 Too Many Requests: when too many requests are coming from the same IP address too often
+
 
 <!-- ROADMAP -->
 ## Roadmap
